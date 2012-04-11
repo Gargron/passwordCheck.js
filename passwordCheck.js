@@ -96,7 +96,6 @@
 			],
 			result;
 
-		// PASSWORD LENGTH
 		if      (len < 5)             intScore = (intScore + 3);
 		else if (len > 4 && len < 8)  intScore = (intScore + 6);
 		else if (len > 7 && len < 16) intScore = (intScore + 12);
