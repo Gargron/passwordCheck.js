@@ -2,10 +2,10 @@
  * passwordCheck.js
  *
  * Author
- * Steve Moitozo <god at zilla dot us>      -- geekwisdom.com
+ * Steve Moitozo <god at zilla dot us> -- geekwisdom.com
  *
  * Refactored by
- * Eugen Rochko  <gargron at gmail dot com> -- zeonfederated.com
+ * Eugen Rochko <gargron at gmail dot com> -- zeonfederated.com
  *
  * License
  * MIT License (see below)
@@ -69,63 +69,102 @@
  * level 0 (1 points):  letters and numbers exist
  * level 1 (1 points):  mixed case letters
  * level 1 (2 points):  letters, numbers and special characters 
- * 					    exist
+ *                      exist
  * level 1 (2 points):  mixed case letters, numbers and special 
- * 					    characters exist
+ *                      characters exist
  * 
  * 
  */
 
-(function(window, undefined) {
-	window.passwordCheck = function(string, callback) {
-		var intScore   = 0,
-		    strVerdict = "weak",
-		    len        = string.length,
-		    regexes    = [
+(function (window) {
+  'use strict';
 
-				/[a-z]/,                                                                        // lowercase letters
-				/[A-Z]/,                                                                        // uppercase letters
-				/[\d]/,                                                                         // numbers
-				/(.*[0-9].*[0-9].*[0-9])/,                                                      // >= 3 numbers
-				/.[!,@,#,$,%,^,&,*,?,_,~]/,                                                     // special characters
-				/(.*[!,@,#,$,%,^,&,*,?,_,~].*[!,@,#,$,%,^,&,*,?,_,~])/,                         // >= 2 special characters
-				/([a-z].*[A-Z])|([A-Z].*[a-z])/,                                                // both upper and lowercase letters
-				/([a-zA-Z].*[0-9]|[0-9].*[a-zA-Z])/,                                            // both numbers and letters
-				/([a-zA-Z0-9].*[!,@,#,$,%,^,&,*,?,_,~])|([!,@,#,$,%,^,&,*,?,_,~].*[a-zA-Z0-9])/ // letters, numbers, special characters
+  window.passwordCheck = function (string, callback) {
+    var intScore = 0,
+      strVerdict = "weak",
+      len        = string.length,
+      regexes    = [
 
-			],
-			result;
+        /[a-z]/,                                                                          // lowercase letters
+        /[A-Z]/,                                                                          // uppercase letters
+        /[\d]/,                                                                           // numbers
+        /(.*[0-9].*[0-9].*[0-9])/,                                                        // >= 3 numbers
+        /.[!,@,#,$,%,\^,&,*,?,_,~]/,                                                      // special characters
+        /(.*[!,@,#,$,%,\^,&,*,?,_,~].*[!,@,#,$,%,\^,&,*,?,_,~])/,                         // >= 2 special characters
+        /([a-z].*[A-Z])|([A-Z].*[a-z])/,                                                  // both upper and lowercase letters
+        /([a-zA-Z].*[0-9]|[0-9].*[a-zA-Z])/,                                              // both numbers and letters
+        /([a-zA-Z0-9].*[!,@,#,$,%,\^,&,*,?,_,~])|([!,@,#,$,%,\^,&,*,?,_,~].*[a-zA-Z0-9])/ // letters, numbers, special characters
 
-		if      (len < 5)             intScore = (intScore + 3);
-		else if (len > 4 && len < 8)  intScore = (intScore + 6);
-		else if (len > 7 && len < 16) intScore = (intScore + 12);
-		else if (len > 15)            intScore = (intScore + 18);
+      ],
+      result;
 
-		if (string.search(regexes[0]) !== -1) intScore = (intScore + 1);
-		if (string.search(regexes[1]) !== -1) intScore = (intScore + 5);
+    if (len < 5) {
+      intScore = (intScore + 3);
+    } else if (len > 4 && len < 8) {
+      intScore = (intScore + 6);
+    } else if (len > 7 && len < 16) {
+      intScore = (intScore + 12);
+    } else if (len > 15) {
+      intScore = (intScore + 18);
+    }
 
-		if (string.search(regexes[2]) !== -1) intScore = (intScore + 5);
-		if (string.search(regexes[3]) !== -1) intScore = (intScore + 5);
+    if (string.search(regexes[0]) !== -1) {
+      intScore = (intScore + 1);
+    }
 
-		if (string.search(regexes[4]) !== -1) intScore = (intScore + 5);
-		if (string.search(regexes[5]) !== -1) intScore = (intScore + 5);
+    if (string.search(regexes[1]) !== -1) {
+      intScore = (intScore + 5);
+    }
 
-		if (string.search(regexes[6]) !== -1) intScore = (intScore + 2);
-		if (string.search(regexes[7]) !== -1) intScore = (intScore + 2);
-		if (string.search(regexes[8]) !== -1) intScore = (intScore + 2);
+    if (string.search(regexes[2]) !== -1) {
+      intScore = (intScore + 5);
+    }
 
-		if      (intScore < 16)                  strVerdict = "very weak";
-		else if (intScore > 15 && intScore < 25) strVerdict = "weak";
-		else if (intScore > 24 && intScore < 35) strVerdict = "mediocre";
-		else if (intScore > 34 && intScore < 45) strVerdict = "strong";
-		else                                     strVerdict = "stronger";
+    if (string.search(regexes[3]) !== -1) {
+      intScore = (intScore + 5);
+    }
 
-		result = {
-			'score'  : intScore,
-			'verdict': strVerdict
-		};
+    if (string.search(regexes[4]) !== -1) {
+      intScore = (intScore + 5);
+    }
 
-		if(typeof callback == "function") return callback(result);
-		else                              return result;
-	};
-})( window );
+    if (string.search(regexes[5]) !== -1) {
+      intScore = (intScore + 5);
+    }
+
+    if (string.search(regexes[6]) !== -1) {
+      intScore = (intScore + 2);
+    }
+
+    if (string.search(regexes[7]) !== -1) {
+      intScore = (intScore + 2);
+    }
+
+    if (string.search(regexes[8]) !== -1) {
+      intScore = (intScore + 2);
+    }
+
+    if (intScore < 16) {
+      strVerdict = "weak";
+    } else if (intScore > 15 && intScore < 25) {
+      strVerdict = "pretty firm";
+    } else if (intScore > 24 && intScore < 35) {
+      strVerdict = "strong";
+    } else if (intScore > 34 && intScore < 45) {
+      strVerdict = "rock-solid";
+    } else {
+      strVerdict = "over 9000!!1";
+    }
+
+    result = {
+      'score'  : intScore,
+      'verdict': strVerdict
+    };
+
+    if (typeof callback === "function") {
+      return callback.apply(null, [result]);
+    } else {
+      return result;
+    }
+  };
+}(window));
