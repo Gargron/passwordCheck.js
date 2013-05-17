@@ -1,170 +1,92 @@
-/*
- * passwordCheck.js
+/**
+ * Copyright (c) 2013 Eugen Rochko
  *
- * Author
- * Steve Moitozo <god at zilla dot us> -- geekwisdom.com
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * Refactored by
- * Eugen Rochko <gargron at gmail dot com> -- zeonfederated.com
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- * License
- * MIT License (see below)
- *
- * ---------------------------------------------------------------
- * Copyright (c) 2006 Steve Moitozo <god at zilla dot us>
- * 
- * Permission is hereby granted, free of charge, to any person 
- * obtaining a copy of this software and associated documentation 
- * files (the "Software"), to deal in the Software without 
- * restriction, including without limitation the rights to use, 
- * copy, modify, merge, publish, distribute, sublicense, and/or 
- * sell copies of the Software, and to permit persons to whom the 
- * Software is furnished to do so, subject to the following 
- * conditions:
- * 
- * The above copyright notice and this permission notice shall 
- * be included in all copies or substantial portions of the 
- * Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY 
- * KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
- * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE 
- * AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE 
- * OR OTHER DEALINGS IN THE SOFTWARE. 
- * ---------------------------------------------------------------
- * 
- * Password Strength Factors and Weightings
- * ========================================
- *
- * Password length:
- * ----------------
- * level 0 (3 point):   less than 4 characters
- * level 1 (6 points):  between 5 and 7 characters
- * level 2 (12 points): between 8 and 15 characters
- * level 3 (18 points): 16 or more characters
- * 
- * Letters:
- * ----------------
- * level 0 (0 points):  no letters
- * level 1 (5 points):  all letters are lower case
- * level 2 (7 points):  letters are mixed case
- * 
- * Numbers:
- * ----------------
- * level 0 (0 points):  no numbers exist
- * level 1 (5 points):  one number exists
- * level 1 (7 points):  3 or more numbers exists
- * 
- * Special characters:
- * ----------------
- * level 0 (0 points):  no special characters
- * level 1 (5 points):  one special character exists
- * level 2 (10 points): more than one special character exists
- * 
- * Combinatons:
- * ----------------
- * level 0 (1 points):  letters and numbers exist
- * level 1 (1 points):  mixed case letters
- * level 1 (2 points):  letters, numbers and special characters 
- *                      exist
- * level 1 (2 points):  mixed case letters, numbers and special 
- *                      characters exist
- * 
- * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 (function (window) {
   'use strict';
 
-  window.passwordCheck = function (string, callback) {
-    var intScore = 0,
-      strVerdict = "weak",
-      len        = string.length,
-      regexes    = [
+  var passwordCheck;
 
-        /[a-z]/,                                                                          // lowercase letters
-        /[A-Z]/,                                                                          // uppercase letters
-        /[\d]/,                                                                           // numbers
-        /(.*[0-9].*[0-9].*[0-9])/,                                                        // >= 3 numbers
-        /.[!,@,#,$,%,\^,&,*,?,_,~]/,                                                      // special characters
-        /(.*[!,@,#,$,%,\^,&,*,?,_,~].*[!,@,#,$,%,\^,&,*,?,_,~])/,                         // >= 2 special characters
-        /([a-z].*[A-Z])|([A-Z].*[a-z])/,                                                  // both upper and lowercase letters
-        /([a-zA-Z].*[0-9]|[0-9].*[a-zA-Z])/,                                              // both numbers and letters
-        /([a-zA-Z0-9].*[!,@,#,$,%,\^,&,*,?,_,~])|([!,@,#,$,%,\^,&,*,?,_,~].*[a-zA-Z0-9])/ // letters, numbers, special characters
+  passwordCheck = function (input, callback) {
+    var points, length, characters, i;
 
-      ],
-      result;
+    //console.log('Called to examine ' + input);
 
-    if (len < 5) {
-      intScore = (intScore + 3);
-    } else if (len > 4 && len < 8) {
-      intScore = (intScore + 6);
-    } else if (len > 7 && len < 16) {
-      intScore = (intScore + 12);
-    } else if (len > 15) {
-      intScore = (intScore + 18);
+    points     = 0;
+    length     = input.length;
+    characters = [];
+
+    // The longer the better, min 8 characters
+    points += Math.floor((length / 8) * 10);
+    //console.log(points + ' points for length');
+
+    // Unique characters are good
+    for (i = 0; i < length; i += 1) {
+      if (characters.indexOf(input[i]) === -1) {
+        characters.push(input[i]);
+        points += 1;
+        //console.log('1 point for unique appearance of ' + input[i]);
+      }
     }
 
-    if (string.search(regexes[0]) !== -1) {
-      intScore = (intScore + 1);
+    // At least one of each: lowercase letter, uppercase letter, number, special character
+    if (input.search(/[a-z]/) != -1) {
+      points += 1;
+      //console.log('1 point for at least one lowercase letter');
     }
 
-    if (string.search(regexes[1]) !== -1) {
-      intScore = (intScore + 5);
+    if (input.search(/[A-Z]/) != -1) {
+      points += 2;
+      //console.log('2 points for at least one uppercase letter');
     }
 
-    if (string.search(regexes[2]) !== -1) {
-      intScore = (intScore + 5);
+    if (input.search(/[0-9]/) != -1) {
+      points += 3;
+      //console.log('3 points for at least one number letter');
     }
 
-    if (string.search(regexes[3]) !== -1) {
-      intScore = (intScore + 5);
+    if (input.search(/[\W]/) != -1) {
+      points += 4;
+      //console.log('4 points for at least one special character');
     }
 
-    if (string.search(regexes[4]) !== -1) {
-      intScore = (intScore + 5);
+    // Consecutive repetitions are bad
+    // Sequences are bad
+    for (i = 0; i < length - 1; i += 1) {
+      if (input[i] === input[i + 1] || input[i + 1].charCodeAt() === input[i].charCodeAt() + 1) {
+        points -= 1;
+        //console.log('Removing 1 point for a "' + input[i + 1] + '" after a "' + input[i] + '"');
+      }
     }
 
-    if (string.search(regexes[5]) !== -1) {
-      intScore = (intScore + 5);
-    }
-
-    if (string.search(regexes[6]) !== -1) {
-      intScore = (intScore + 2);
-    }
-
-    if (string.search(regexes[7]) !== -1) {
-      intScore = (intScore + 2);
-    }
-
-    if (string.search(regexes[8]) !== -1) {
-      intScore = (intScore + 2);
-    }
-
-    if (intScore < 16) {
-      strVerdict = "weak";
-    } else if (intScore > 15 && intScore < 25) {
-      strVerdict = "pretty firm";
-    } else if (intScore > 24 && intScore < 35) {
-      strVerdict = "strong";
-    } else if (intScore > 34 && intScore < 45) {
-      strVerdict = "rock-solid";
-    } else {
-      strVerdict = "over 9000!!1";
-    }
-
-    result = {
-      'score'  : intScore,
-      'verdict': strVerdict
-    };
-
-    if (typeof callback === "function") {
-      return callback.apply(null, [result]);
-    } else {
-      return result;
-    }
+    // The minimally strong password should have
+    // 10 points for length
+    // 10 points for variety
+    // 8 points for unique characters
+    // No minus points for sequences/repetitions
+    // That means 28 points. We call the callback with the percentage
+    // 100% is the minimally strong password. Anything below is weak, it is
+    // always stronger upwards
+    callback.apply(null, [Math.floor((points / 28) * 100)]);
   };
-}(window));
+
+  window.passwordCheck = passwordCheck;
+} (window));
